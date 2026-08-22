@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { ArrowRight, Check, Compass, FileCheck2, GraduationCap, Menu, ShieldCheck, Sparkles, X, MapPin, Target } from "lucide-react";
 import { Link, useLocation } from "wouter";
-import { ASSETS, SCHOLARSHIPS } from "@/lib/brand";
+import { ASSETS } from "@/lib/brand";
+import { useScholarships } from "@/lib/useScholarships";
 
 const navItems = [
   ["Scholarships", "#scholarships"],
@@ -85,7 +86,8 @@ function HowItWorks() {
 }
 
 function Featured() {
-  return <section id="featured" className="landing-featured landing-reveal"><SectionIntro kicker="07 / A considered shortlist" title={<>Opportunities worth<br/><em>a closer look.</em></>} body="Compare fit, funding, deadline status, and source transparency at a glance."/><div className="landing-featured-grid">{SCHOLARSHIPS.slice(0,4).map((s) => <article key={s.id} className="featured-card"><div className="featured-card-top"><span>{s.country}</span><strong>{s.funding}</strong></div><h3>{s.name}</h3><p>{s.provider} · {s.degree}</p><div className="featured-card-bottom"><span>Deadline <b>{s.deadline}</b></span><span className="featured-match">{s.match}% <small>match</small></span></div></article>)}</div></section>;
+  const { scholarships } = useScholarships();
+  return <section id="featured" className="landing-featured landing-reveal"><SectionIntro kicker="07 / A considered shortlist" title={<>Opportunities worth<br/><em>a closer look.</em></>} body="Compare fit, funding, deadline status, and source transparency at a glance."/><div className="landing-featured-grid">{scholarships.slice(0,4).map((s) => <article key={s.id} className="featured-card"><div className="featured-card-top"><span>{s.country}</span><strong>{s.funding}</strong></div><h3>{s.name}</h3><p>{s.provider} · {s.degree}</p><div className="featured-card-bottom"><span>Deadline <b>{s.deadline}</b></span><span className="featured-match">{s.match === null ? "—" : `${s.match}%`} <small>match</small></span></div></article>)}</div></section>;
 }
 
 function FinalCTA() {

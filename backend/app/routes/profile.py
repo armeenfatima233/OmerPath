@@ -48,11 +48,19 @@ def update_me(
 
     update_data = payload.model_dump(exclude_unset=True)
 
-    if update_data:
-        for field, value in update_data.items():
-            if field in ALLOWED_FIELDS:
-                setattr(profile, field, value)
+    changed = False
+    for field, value in update_data.items():
+        if field not in ALLOWED_FIELDS:
+            continue
+        if isinstance(value, str):
+            value = value.strip()
+            if not value:
+                # Blank means "no change" for this field, not "clear it".
+                continue
+        setattr(profile, field, value)
+        changed = True
 
+    if changed:
         db.commit()
         db.refresh(profile)
 

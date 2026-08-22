@@ -41,7 +41,8 @@ export type Scholarship = {
   country: string;
   degree: string;
   funding: "Fully Funded" | "Partially Funded";
-  match: number;
+  match: number | null;
+  eligibilityStatus?: "eligible" | "ineligible" | "unknown" | null;
   deadline: string;
   deadlineNote: string;
   eligibility: string;

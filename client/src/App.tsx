@@ -9,8 +9,13 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import RequireAuth from "./components/RequireAuth";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import { PrototypeProvider } from "./contexts/PrototypeContext";
 import { AuthProvider } from "./contexts/AuthContext";
+import { AcademicProfileProvider } from "./contexts/AcademicProfileContext";
+import { SavedScholarshipsProvider } from "./contexts/SavedScholarshipsContext";
+import { ApplicationsProvider } from "./contexts/ApplicationsContext";
+import { DocumentsProvider } from "./contexts/DocumentsContext";
+import { NotificationsProvider } from "./contexts/NotificationsContext";
+import { SettingsProvider } from "./contexts/SettingsContext";
 
 const workspaceRoutes = [
   "/dashboard",
@@ -40,5 +45,5 @@ function Router() {
 }
 
 export default function App() {
-  return <ErrorBoundary><ThemeProvider defaultTheme="light"><PrototypeProvider><AuthProvider><Toaster position="top-right" richColors/><Router/></AuthProvider></PrototypeProvider></ThemeProvider></ErrorBoundary>;
+  return <ErrorBoundary><ThemeProvider defaultTheme="light"><AuthProvider><AcademicProfileProvider><SavedScholarshipsProvider><ApplicationsProvider><DocumentsProvider><NotificationsProvider><SettingsProvider><Toaster position="top-right" richColors/><Router/></SettingsProvider></NotificationsProvider></DocumentsProvider></ApplicationsProvider></SavedScholarshipsProvider></AcademicProfileProvider></AuthProvider></ThemeProvider></ErrorBoundary>;
 }

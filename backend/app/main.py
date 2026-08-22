@@ -8,7 +8,19 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.auth_config import APP_ENV, FRONTEND_URL
-from app.routes import auth, profile
+from app.routes import (
+    academic_profile,
+    advisor,
+    applications,
+    auth,
+    documents,
+    matches,
+    notifications,
+    profile,
+    saved_scholarships,
+    scholarships,
+    user_settings,
+)
 
 logger = logging.getLogger("omerpath.database")
 
@@ -84,6 +96,15 @@ app.add_middleware(
 
 app.include_router(auth.router)
 app.include_router(profile.router)
+app.include_router(academic_profile.router)
+app.include_router(scholarships.router)
+app.include_router(saved_scholarships.router)
+app.include_router(applications.router)
+app.include_router(matches.router)
+app.include_router(documents.router)
+app.include_router(notifications.router)
+app.include_router(user_settings.router)
+app.include_router(advisor.router)
 
 
 @app.get("/")

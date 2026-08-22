@@ -15,7 +15,9 @@ export async function apiFetch(
     credentials: "include",
     headers: {
       Accept: "application/json",
-      ...(options.body ? { "Content-Type": "application/json" } : {}),
+      // FormData bodies (e.g. file uploads) must let the browser set its own
+      // multipart Content-Type with boundary - overriding it corrupts the request.
+      ...(options.body && !(options.body instanceof FormData) ? { "Content-Type": "application/json" } : {}),
       ...options.headers,
     },
   });
