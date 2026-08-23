@@ -12,6 +12,7 @@ from app.advisor import (
     run_advisor_chat,
 )
 from app.database import get_db
+from app.rate_limit import rate_limit
 from app.schemas.advisor import AdvisorChatRequest, AdvisorChatResponse
 from app.routes.auth import get_authenticated_session
 
@@ -23,7 +24,11 @@ router = APIRouter(
 )
 
 
-@router.post("/chat", response_model=AdvisorChatResponse)
+@router.post(
+    "/chat",
+    response_model=AdvisorChatResponse,
+    dependencies=[Depends(rate_limit("advisor-chat", max_requests=20, window_seconds=60))],
+)
 def advisor_chat(
     payload: AdvisorChatRequest,
     request: Request,

@@ -136,12 +136,11 @@ export default function Auth({ mode }: { mode: "login" | "signup" | "forgot" | "
     <section className="auth-visual" style={{ backgroundImage: `linear-gradient(180deg, rgba(9,18,23,.24), rgba(9,18,23,.88)), url(${ASSETS.publicHero})` }}>
       <Link href="/" className="auth-back"><ArrowLeft size={16}/> Back to OmerPath</Link>
       <div className="auth-visual-copy">
-        <div className="landing-kicker light-kicker"><span/> One profile. A clearer path.</div>
         <h1>{isSignup ? "Start with the story behind your goals." : "Welcome back to your scholarship path."}</h1>
         <p>Matches, documents, deadlines, and advisor guidance stay connected in one workspace.</p>
         <div className="auth-proof-grid">
-          <div><ShieldCheck size={18}/><b>Source-aware</b><span>See where opportunity information comes from.</span></div>
-          <div><Sparkles size={18}/><b>Profile-aware</b><span>Understand why a scholarship fits you.</span></div>
+          <div><ShieldCheck size={18}/><b>Verified sources</b><span>See where opportunity information comes from.</span></div>
+          <div><Sparkles size={18}/><b>Personalized fit</b><span>Understand why a scholarship fits you.</span></div>
         </div>
       </div>
     </section>

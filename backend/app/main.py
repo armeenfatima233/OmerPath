@@ -7,7 +7,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.auth_config import APP_ENV, FRONTEND_URL
+from app.auth_config import APP_ENV, FRONTEND_URL, TRUST_PROXY_HEADERS
 from app.routes import (
     academic_profile,
     advisor,
@@ -67,6 +67,8 @@ app = FastAPI(
     description="Backend API for the OmerPath scholarship platform",
     version="1.0.0",
 )
+# Read by app.rate_limit for X-Forwarded-For trust decisions.
+app.state.trust_proxy_headers = TRUST_PROXY_HEADERS
 
 # Localhost development origins only. Production must use the real
 # HTTPS frontend domain instead of these local addresses.

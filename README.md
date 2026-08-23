@@ -1,63 +1,75 @@
-# OmerPath Complete Front-End Prototype
+# OmerPath
 
-A production-oriented interactive front-end prototype for OmerPath, an AI-guided scholarship discovery and application workspace.
+An AI-guided scholarship discovery and application workspace: a React frontend, a FastAPI backend, Postgres (via Supabase) for data and Supabase Auth for authentication, and a Groq-backed AI Advisor grounded in each student's real profile, scholarships, matches, applications, and documents.
 
-## Run locally
+## Architecture
+
+```
+client/   React + TypeScript + Vite frontend (deployed as app.<domain> in production)
+backend/  FastAPI + SQLAlchemy + Alembic backend (deployed as api.<domain> in production)
+```
+
+The frontend never talks to Supabase or Groq directly - every request goes through the FastAPI backend, which holds all secrets server-side and authenticates every request via an HttpOnly session cookie.
+
+## Backend setup
+
+Requirements: Python 3.12+, a Supabase project (Postgres + Auth), a Groq API key.
+
+```bash
+cd backend
+python -m venv .venv
+.venv/Scripts/activate        # .venv/bin/activate on macOS/Linux
+pip install -r requirements.txt
+cp .env.example .env          # then fill in real values - see .env.example for what each one does
+alembic upgrade head
+uvicorn app.main:app --reload
+```
+
+Backend runs at `http://localhost:8000` by default. See `backend/.env.example` for every required/optional environment variable and what it controls (database, Supabase keys, `GROQ_API_KEY`, cookie/CORS behavior).
+
+### Running backend tests
+
+```bash
+cd backend
+pytest
+```
+
+This is an integration-style suite (see `backend/tests/conftest.py`): it runs the real FastAPI app in-process against whatever Supabase project + Postgres database `backend/.env` points to, creating and deleting throwaway `pytest-*@example.com` accounts via the Supabase admin API. **Never point `backend/.env` at a production database or Supabase project while running tests.** The AI Advisor's LLM call is mocked in every test except one, which only runs when `GROQ_API_KEY` is set (`pytest -m live_llm` to select it explicitly, or it runs automatically as part of the full suite whenever the key is present).
+
+## Frontend setup
 
 Requirements: Node.js 20+ and npm.
 
 ```bash
 npm install
+cp client/.env.example client/.env.local   # then set VITE_API_BASE_URL to the backend's URL
 npm run dev
 ```
 
 Open the URL shown by Vite, normally `http://localhost:3000`.
 
-For a production bundle:
-
 ```bash
-npm run build
+npm run check   # TypeScript type-check
+npm run build   # production bundle
 npm run preview
 ```
 
 ## Main routes
 
-- `/` — public landing page with interactive quick matcher
-- `/signup` — prototype sign-up
-- `/login` — prototype login
-- `/onboarding` — four-step profile onboarding
+- `/` — public landing page
+- `/signup`, `/login` — authentication
+- `/onboarding` — profile + academic profile setup
 - `/dashboard` — workspace overview
-- `/dashboard/scholarships` — search, filter, sorting, saved opportunities
-- `/dashboard/scholarships/:id` — explainable match detail
-- `/dashboard/applications` — application stage planner
-- `/dashboard/passport` — document readiness, file upload simulation, controlled share dialog
-- `/dashboard/advisor` — context-aware AI Advisor simulation
-- `/dashboard/resources` — searchable resource library
-- `/dashboard/notifications` — notification state management
-- `/dashboard/profile` — editable profile
-- `/dashboard/settings` — privacy/notification preferences and prototype reset
+- `/dashboard/scholarships` — real scholarship search/filter, with computed match/eligibility
+- `/dashboard/scholarships/:id` — scholarship detail, eligibility breakdown, application entry point
+- `/dashboard/applications` — application status/progress tracking
+- `/dashboard/passport` — document upload/readiness (private Supabase Storage, signed URLs)
+- `/dashboard/advisor` — AI Advisor, grounded in the signed-in student's real data
+- `/dashboard/notifications`, `/dashboard/profile`, `/dashboard/settings`
 
-## What was fixed in this release
+## Production deployment notes
 
-- Corrected all dashboard routes and sidebar URLs.
-- Removed references to dashboard images that were missing from the original ZIP.
-- Replaced placeholder CTA toasts with working front-end flows.
-- Added sign-up, login, onboarding, scholarship detail, filtering, saving, applications, Passport, Advisor, profile, notifications, resources, and settings experiences.
-- Added an interactive landing-page matcher rather than adding more decorative sections.
-- Reduced landing-page repetition while keeping the existing warm editorial visual direction.
-- Added visible prototype/source/freshness caveats so demo data is not presented as live verified scholarship data.
-- Corrected the 15 August 2026 weekday to Saturday.
-- Removed old 2024/2025 scholarship labels from the prototype content.
-- Removed blue/plum UI accents from the active product experience.
-- Added accessible names for icon-only controls, visible keyboard focus, reduced-motion support, and restored browser zoom support.
-- Improved small-screen typography and mobile layouts.
-- Added SEO/social metadata and hero image preload.
-- Replaced the 1920px logo used at tiny UI sizes with an optimized 160px WebP mark.
-- Removed Manus-specific Vite runtime/debug dependencies from the release configuration.
-- Added localStorage persistence for interactive prototype state.
-
-## Important prototype note
-
-Opportunity records, dates, match scores, source states, and verification labels in this build are sample interface data. A production release should connect every scholarship to a live data pipeline and the official programme source, with server-side freshness checks and audit history.
-
-The AI Advisor in this build is a deterministic front-end simulation. It demonstrates how profile, Passport, shortlist, and application context should shape answers; it is not connected to an LLM API.
+- **Domains**: same-site custom-domain architecture (`app.<domain>` for the frontend, `api.<domain>` for the backend, both HTTPS). Set `FRONTEND_URL` (backend) and `VITE_API_BASE_URL` (frontend) accordingly.
+- **Supabase**: add the production `FRONTEND_URL` to the Supabase project's Allowed Redirect URLs, or signup-confirmation/password-reset email links will fail.
+- **Migrations**: `alembic upgrade head` must run against the production database before the backend starts serving traffic - there is no automatic migration-on-startup.
+- **Secrets**: `SUPABASE_SECRET_KEY`, `GROQ_API_KEY`, and `DATABASE_URL` are server-side only and must never reach the frontend build or any client-visible config.

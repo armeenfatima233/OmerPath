@@ -24,4 +24,11 @@ COOKIE_DOMAIN = os.getenv("AUTH_COOKIE_DOMAIN") or None
 PERSISTENT_SESSION_SECONDS = int(
     os.getenv("AUTH_SESSION_MAX_AGE_SECONDS", str(30 * 24 * 60 * 60))
 )
+# Only trust X-Forwarded-For (used for rate-limit bucketing) when actually
+# deployed behind a reverse proxy/load balancer that sets it - trusting it
+# from direct/dev clients would let a caller spoof its own rate-limit bucket.
+TRUST_PROXY_HEADERS = _as_bool(
+    os.getenv("TRUST_PROXY_HEADERS"),
+    default=APP_ENV == "production",
+)
 

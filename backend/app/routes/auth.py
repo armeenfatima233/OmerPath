@@ -14,6 +14,7 @@ from app.auth_config import (
     PERSISTENT_SESSION_SECONDS,
 )
 from app.models.profile import Profile
+from app.rate_limit import rate_limit
 from app.schemas.auth import (
     CurrentUserResponse,
     AuthCodeExchangeRequest,
@@ -128,6 +129,7 @@ def get_authenticated_session(request: Request, response: Response) -> Authentic
     "/signup",
     response_model=SignUpResponse,
     status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(rate_limit("signup", max_requests=5, window_seconds=3600))],
 )
 def signup(payload: SignUpRequest, response: Response) -> SignUpResponse:
     try:
@@ -180,6 +182,7 @@ def signup(payload: SignUpRequest, response: Response) -> SignUpResponse:
     "/login",
     response_model=LoginResponse,
     status_code=status.HTTP_200_OK,
+    dependencies=[Depends(rate_limit("login", max_requests=10, window_seconds=60))],
 )
 def login(payload: LoginRequest, response: Response) -> LoginResponse:
     client = get_supabase_auth_client()
@@ -262,7 +265,11 @@ def refresh_session(request: Request, response: Response) -> dict:
     return {"message": "Session refreshed."}
 
 
-@router.post("/forgot-password", status_code=status.HTTP_200_OK)
+@router.post(
+    "/forgot-password",
+    status_code=status.HTTP_200_OK,
+    dependencies=[Depends(rate_limit("forgot-password", max_requests=5, window_seconds=3600))],
+)
 def forgot_password(payload: PasswordResetRequest, response: Response) -> dict:
     try:
         verifier = request_password_reset_with_pkce(

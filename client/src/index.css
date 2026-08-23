@@ -221,9 +221,11 @@ main { background-image: linear-gradient(rgba(20,33,38,.018) 1px, transparent 1p
 /* OmerPath v4 prototype hardening: accessibility, product flows, responsive forms, and interaction states. */
 :focus-visible { outline: 3px solid rgba(217,138,57,.42); outline-offset: 3px; }
 .focus-ring:focus-visible { outline: 3px solid rgba(217,138,57,.42); outline-offset: 3px; }
-.icon-button { display:inline-flex; align-items:center; justify-content:center; border:0; border-radius:12px; padding:9px; background:transparent; color:rgba(20,33,38,.48); transition:background .2s ease,color .2s ease,transform .2s ease; }
-.icon-button:hover { background:rgba(20,33,38,.055); color:#142126; }
-.icon-button:active { transform:scale(.96); }
+@layer components {
+  .icon-button { display:inline-flex; align-items:center; justify-content:center; border:0; border-radius:12px; padding:9px; background:transparent; color:rgba(20,33,38,.48); transition:background .2s ease,color .2s ease,transform .2s ease; }
+  .icon-button:hover { background:rgba(20,33,38,.055); color:#142126; }
+  .icon-button:active { transform:scale(.96); }
+}
 .text-button { border:0; padding:0; background:transparent; color:#a76627; font-size:12px; font-weight:700; }
 .demo-banner { max-width:1440px; margin:0 auto; display:flex; align-items:flex-start; gap:8px; border:1px solid rgba(217,138,57,.22); border-radius:12px; padding:9px 12px; background:rgba(217,138,57,.075); color:rgba(20,33,38,.58); font-size:10px; line-height:1.45; }
 .demo-banner svg { flex:0 0 auto; margin-top:1px; color:#b86c25; }
