@@ -27,6 +27,8 @@ services:
           envVarKey: RENDER_EXTERNAL_URL
       - key: AUTH_SESSION_MAX_AGE_SECONDS
         value: 2592000
+      - key: AUTH_COOKIE_SAMESITE
+        value: "none"
 
   - type: web
     name: omerpath-frontend

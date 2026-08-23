@@ -7,6 +7,8 @@ import uuid
 
 from fastapi.testclient import TestClient
 
+import app.routes.auth as auth_routes
+from app.auth_config import FRONTEND_URL
 from app.main import app
 from app.supabase_client import supabase
 
@@ -78,6 +80,64 @@ def test_login_success_sets_session_cookies(user_a):
     me = logged_in_client.get("/api/auth/me")
     assert me.status_code == 200
     assert "@example.com" in me.json()["email"]
+
+
+def _set_cookie_headers_for(response, cookie_name: str):
+    headers = response.headers.get_list("set-cookie")
+    return [h for h in headers if h.startswith(f"{cookie_name}=")]
+
+
+def test_production_cookie_config_is_secure_and_samesite_none(make_user, monkeypatch):
+    # Render's default *.onrender.com service URLs are cross-site (onrender.com
+    # is the public-suffix boundary), so a SameSite=Lax cookie is silently
+    # dropped by the browser on the follow-up /api/auth/me fetch. Production
+    # must use Secure + SameSite=None on every session cookie.
+    monkeypatch.setattr(auth_routes, "COOKIE_SECURE", True)
+    monkeypatch.setattr(auth_routes, "COOKIE_SAMESITE", "none")
+    _, _, email = make_user()
+
+    response = TestClient(app).post("/api/auth/login", json={"email": email, "password": TEST_PASSWORD})
+    assert response.status_code == 200
+
+    for cookie_name in (auth_routes.ACCESS_COOKIE, auth_routes.REFRESH_COOKIE):
+        matches = _set_cookie_headers_for(response, cookie_name)
+        assert matches, f"no Set-Cookie header found for {cookie_name}"
+        header = matches[0].lower()
+        assert "httponly" in header
+        assert "secure" in header
+        assert "samesite=none" in header
+        assert "path=/" in header
+
+
+def test_development_cookie_config_defaults_to_lax_and_not_secure(make_user, monkeypatch):
+    # Local development must keep working exactly as before: no Secure
+    # attribute (plain http://localhost), SameSite=Lax, and the session
+    # must still authenticate the very next request on the same client.
+    monkeypatch.setattr(auth_routes, "COOKIE_SECURE", False)
+    monkeypatch.setattr(auth_routes, "COOKIE_SAMESITE", "lax")
+    _, _, email = make_user()
+
+    dev_client = TestClient(app)
+    response = dev_client.post("/api/auth/login", json={"email": email, "password": TEST_PASSWORD})
+    assert response.status_code == 200
+
+    for cookie_name in (auth_routes.ACCESS_COOKIE, auth_routes.REFRESH_COOKIE):
+        matches = _set_cookie_headers_for(response, cookie_name)
+        assert matches, f"no Set-Cookie header found for {cookie_name}"
+        header = matches[0].lower()
+        assert "httponly" in header
+        assert "secure" not in header
+        assert "samesite=lax" in header
+
+    me = dev_client.get("/api/auth/me")
+    assert me.status_code == 200
+
+
+def test_cors_allows_configured_frontend_origin_with_credentials(client):
+    response = client.get("/api/health", headers={"Origin": FRONTEND_URL})
+    assert response.status_code == 200
+    assert response.headers.get("access-control-allow-origin") == FRONTEND_URL
+    assert response.headers.get("access-control-allow-credentials") == "true"
 
 
 def test_login_wrong_password_is_rejected(client, user_a):
